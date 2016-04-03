@@ -1,5 +1,6 @@
 # Example homework assignment 1
 
+import os
 from PIL import Image, ImageDraw, ImageFont
 import numpy as np
 
@@ -10,9 +11,8 @@ def to_grayscale(img):
     Returns:
         numpy output array of single channel grayscale image
     """
-    # TODO: Remove the placeholder return value and
-    # write your own implementation
-    return np.zeros(img.shape[:-1], dtype=img.dtype)
+    gray = img.mean(axis=2)
+    return gray.astype(img.dtype)
 
 def split_channels(img):
     """Splits an RGB image into 3 grayscale channel images
@@ -21,9 +21,7 @@ def split_channels(img):
     Returns:
         List of grayscale channel images as numpy arrays
     """
-    # TODO: Remove the placeholder return value and
-    # write your own implementation
-    channels = [np.zeros(img.shape[:-1], dtype=img.dtype)] * 3
+    channels = [img[:,:,i] for i in range(3)]
     return channels
     
 def average(img1, img2):
@@ -34,9 +32,9 @@ def average(img1, img2):
     Returns:
         numpy output array of the averaged pixels of the input
     """
-    # TODO: Remove the placeholder return value and
-    # write your own implementation
-    return np.zeros_like(img1)
+    added = img1 + img2
+    averaged = added / 2
+    return averaged.astype(img1.dtype)
     
 def lighten(img1, img2):
     """Performs the "lighten" blend operation on two images
@@ -48,9 +46,8 @@ def lighten(img1, img2):
     Returns:
         numpy output array of the lightened pixels of the input
     """
-    # TODO: Remove the placeholder return value and
-    # write your own implementation
-    return np.zeros_like(img1)
+    lightened = np.max(np.array([img1, img2]), axis=0)
+    return lightened.astype(img1.dtype)
     
 def darken(img1, img2):
     """Performs the "darken" blend operation on two images
@@ -62,9 +59,8 @@ def darken(img1, img2):
     Returns:
         numpy output array of the darkened pixels of the input
     """
-    # TODO: Remove the placeholder return value and
-    # write your own implementation
-    return np.zeros_like(img1)
+    darkened = np.min(np.array([img1, img2]), axis=0)
+    return darkened.astype(img1.dtype)
     
 def glow(img1, img2):
     """Performs the "glow" blend operation on two images
@@ -76,12 +72,13 @@ def glow(img1, img2):
     Returns:
         numpy output array of the darkened pixels of the input
     """
-    # TODO: Remove the placeholder return value and
-    # write your own implementation
-    return np.zeros_like(img1)
+    glowing = img1.astype(np.float32) ** 2
+    glowing = glowing / (255 - img2)
+    glowing = np.clip(glowing, 0, 255)
+    return glowing.astype(img1.dtype)
     
 def showtext(image, text):
-    font = ImageFont.truetype(font='FreeMono.ttf', size=90)
+    font = ImageFont.truetype(font='FreeMono.ttf', size=100)
     draw = ImageDraw.Draw(image)
     white = (200,200,200)
     black = (0,0,0)
@@ -97,6 +94,8 @@ def showtext(image, text):
     return image
     
 def main():
+    if not os.path.exists('output'):
+        os.makedirs('output')
     print 'Loading balloon image'
     balloon_image = Image.open('images/balloon.jpg')
     balloon = np.array(balloon_image)
@@ -108,6 +107,7 @@ def main():
     gray = Image.fromarray(output, 'L')
     showtext(gray, 'Balloon Grayscale')
     gray.show()
+    gray.save('output/to_grayscale.png')
     
     print 'Testing split_channels'
     channels = ['Red', 'Green', 'Blue']
@@ -115,6 +115,7 @@ def main():
         split = Image.fromarray(channel, 'L')
         showtext(split, 'Balloon %s Channel' % channels[index])
         split.show()
+        split.save('output/split_channels_%s.png' % channels[index].lower())
         
     print 'Loading sky image'
     sky_image = Image.open('images/sky.jpg')
@@ -127,24 +128,28 @@ def main():
     averaged = Image.fromarray(output)
     showtext(averaged, 'Average Effect')
     averaged.show()
+    averaged.save('output/average.png')
     
     print 'Testing lighten'
     output = lighten(balloon, sky)
     lightened = Image.fromarray(output)
     showtext(lightened, 'Lighten Effect')
     lightened.show()
+    lightened.save('output/lighten.png')
     
     print 'Testing darken'
     output = darken(balloon, sky)
     darkened = Image.fromarray(output)
     showtext(darkened, 'Darken Effect')
     darkened.show()
+    darkened.save('output/darken.png')
     
     print 'Testing glow'
     output = glow(balloon, sky)
     glowing = Image.fromarray(output)
     showtext(glowing, 'Glow Effect')
     glowing.show()
+    glowing.save('output/glow.png')
 
 if __name__ == "__main__":
     main()
